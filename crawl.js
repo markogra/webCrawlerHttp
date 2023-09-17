@@ -1,6 +1,33 @@
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 
+async function crawlPage(currentURL) {
+  console.log(`actively crawling: ${currentURL}`);
+  try {
+    const response = await fetch(currentURL);
+
+    if (response.status > 399) {
+      console.log(
+        `Error in fetch with status code: ${response.status} on page ${currentURL}  `
+      );
+      return;
+    }
+
+    const contentType = response.headers.get("content-type");
+
+    if (!contentType.includes("text/html")) {
+      console.log(
+        `Non html response, content type : ${contentType}, on page: ${currentURL}`
+      );
+      return;
+    }
+    // We are expacting response body to be html not json, that's why we will parse it as text !
+    console.log(await response.text());
+  } catch (error) {
+    console.log(`Error in fetch:${error.message}, on page ${currentURL} `);
+  }
+}
+
 function getURLsFromHTML(htmlBody, baseURL) {
   const urls = [];
   const dom = new JSDOM(htmlBody);
@@ -42,4 +69,4 @@ function normalizeURL(urlString) {
 
 normalizeURL("https://google.com/hello");
 
-module.exports = { normalizeURL, getURLsFromHTML };
+module.exports = { normalizeURL, getURLsFromHTML, crawlPage };
